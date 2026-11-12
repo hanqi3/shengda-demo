@@ -1,4 +1,4 @@
-import ctypes, ctypes.wintypes as w, base64, json, os, sys, urllib.request, ssl
+import ctypes, ctypes.wintypes as w, base64, json, os, urllib.request, urllib.error
 
 class CREDENTIAL(ctypes.Structure):
     _fields_ = [
@@ -8,6 +8,9 @@ class CREDENTIAL(ctypes.Structure):
         ("Persist", w.DWORD), ("AttributeCount", w.DWORD), ("Attributes", ctypes.c_void_p),
         ("TargetAlias", w.LPWSTR), ("UserName", w.LPWSTR),
     ]
+
+PROXY = "http://127.0.0.1:1080"
+OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({"https": PROXY, "http": PROXY}))
 
 def read_cred(target="git:https://github.com"):
     adv = ctypes.WinDLL("advapi32", use_last_error=True)
@@ -20,13 +23,9 @@ def read_cred(target="git:https://github.com"):
     adv.CredFree(p)
     return user, blob
 
-PROXY = "http://127.0.0.1:1080"
-OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({"https": PROXY, "http": PROXY}))
-
 def api(path, method="GET", payload=None, token=None, user=None):
-    url = "https://api.github.com" + path
     data = json.dumps(payload).encode() if payload is not None else None
-    req = urllib.request.Request(url, data=data, method=method)
+    req = urllib.request.Request("https://api.github.com" + path, data=data, method=method)
     req.add_header("Authorization", "Basic " + base64.b64encode((user + ":" + token).encode()).decode())
     req.add_header("User-Agent", "dsh-publish")
     req.add_header("Accept", "application/vnd.github+json")
@@ -42,12 +41,3 @@ def api(path, method="GET", payload=None, token=None, user=None):
             return e.code, json.loads(body)
         except Exception:
             return e.code, body
-
-if __name__ == "__main__":
-    user, token = read_cred()
-    st, me = api("/user", token=token, user=user)
-    print("me:", st, me.get("login"), "public_repos=%s" % me.get("public_repos"))
-    st, repos = api("/user/repos?per_page=100&sort=updated", token=token, user=user)
-    print("repos:", st)
-    for r in repos or []:
-        print("  -", r["name"], "private" if r["private"] else "public", "pages=" + str(bool(r.get("has_pages"))))

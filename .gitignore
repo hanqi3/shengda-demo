@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+_gh.py
+_gh_cred.py
+_update.py
+publish*.py
+publish.ps1

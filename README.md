@@ -4,7 +4,7 @@
 
 ## 打开方式
 
-- 在线：GitHub Pages 链接 `https://<用户名>.github.io/shengda-demo/`
+- 在线：<https://hanqi3.github.io/shengda-demo/> （建议用桌面 Chrome / Edge 打开，窗口宽于 1000px 效果最好）
 - 本地：下载 `index.html`，双击用 Chrome / Edge 打开
 
 ## 这是什么
